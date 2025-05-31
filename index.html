@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Series Episodes</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+<style>
+body {
+background-color: #121212;
+color: #ffffff;
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 0;
+}
+.container {
+padding: 20px;
+padding-bottom: 80px;
+}
+.video-container {
+position: relative; /* Antes estaba en fixed */
+width: 100%;
+padding-top: 56.25%; /* Mantiene la relación 16:9 */
+background-color: #121212;
+z-index: 1000;
+}
+
+.video-container iframe {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+border: none;
+}
+@media (max-width: 768px) {
+.video-container {
+position: fixed;
+top: 0;
+left: 0;
+}
+
+.content {
+margin-top: 56.25%;
+}
+}
+
+.dropdowns {
+display: flex;
+justify-content: space-between;
+margin-bottom: 20px;
+}
+.dropdowns select {
+background-color: #333;
+color: #fff;
+border: none;
+padding: 10px;
+font-size: 16px;
+border-radius: 5px;
+}
+.episode-list {
+list-style: none;
+padding: 0;
+max-height: 400px;
+overflow-y: auto;
+}
+.episode-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+background-color: #1e1e1e;
+padding: 10px;
+margin-bottom: 10px;
+border-radius: 5px;
+cursor: pointer;
+}
+.episode-item img {
+width: 80px;
+height: 45px;
+border-radius: 5px;
+margin-right: 10px;
+}
+.episode-info {
+flex-grow: 1;
+}
+.episode-info h3 {
+margin: 0;
+font-size: 18px;
+}
+.episode-info p {
+margin: 5px 0 0;
+color: #888;
+}
+.toggle {
+display: flex;
+align-items: center;
+}
+.toggle label {
+margin-right: 10px;
+}
+.toggle input[type="checkbox"] {
+width: 40px;
+height: 20px;
+appearance: none;
+background-color: #555;
+border-radius: 10px;
+position: relative;
+outline: none;
+cursor: pointer;
+}
+.toggle input[type="checkbox"]:checked {
+background-color: #0f0;
+}
+.toggle input[type="checkbox"]::before {
+content: '';
+position: absolute;
+width: 18px;
+height: 18px;
+background-color: #fff;
+border-radius: 50%;
+top: 1px;
+left: 1px;
+transition: 0.3s;
+}
+.toggle input[type="checkbox"]:checked::before {
+transform: translateX(20px);
+}
+.bottom-nav {
+position: fixed;
+bottom: 0;
+width: 100%;
+background-color: #312e2e;
+display: flex;
+justify-content: space-around;
+padding: 15px 0;
+}
+.bottom-nav a {
+color: #888;
+text-align: center;
+text-decoration: none;
+flex-grow: 1;
+}
+.bottom-nav a.active {
+color:rgb(136, 5, 5);
+}
+.bottom-nav a i {
+font-size: 24px;
+}
+.bottom-nav a span {
+display: block;
+font-size: 12px;
+margin-top: 4px;
+}
+
+.synopsis {
+display: none;
+background-color: #222;
+border-radius: 8px;
+padding: 10px;
+margin-bottom: 20px;
+font-size: 15px;
+line-height: 1.6;
+}
+
+.synopsis-button {
+background-color: #333;
+color: #fff;
+border: none;
+border-radius: 8px;
+padding: 10px 15px;
+cursor: pointer;
+font-size: 15px;
+margin-left: 10px;
+white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<!-- Video principal -->
+<div class="video-container">
+<iframe
+allowfullscreen
+id="main-video"
+src="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe2/d2/s8/2/_/s/0/X/_s0Xx.aaa.mp4"
+sandbox="allow-scripts allow-same-origin allow-presentation"
+></iframe>
+</div>
+
+
+<br>
+<div class="container">
+<div class="content">
+<div class="dropdowns">
+<select id="season-select">
+<option value="season1">Temporada 1</option>
+
+
+</select>
+<button class="synopsis-button" onclick="toggleSynopsis()">Ver sinopsis</button>
+</div>
+<div class="synopsis" id="synopsis">
+<p>Mark Grayson hereda superpoderes a los diecisiete años y se une a su padre como uno de los mayores héroes de la Tierra. Todos sus sueños se hacen realidad, hasta que un evento impactante lo cambia todo.
+</p>
+</div>
+<h2>INVENCIBLE</h2>
+
+<div id="last-watched-info" style="color: #ccc; margin-bottom: 10px;"></div>
+<div id="progress-info" style="color: #999; font-size: 14px; margin-bottom: 20px;"></div>
+<button id="reset-progress" style="
+background-color: #660000;
+color: white;
+border: none;
+padding: 10px 15px;
+border-radius: 8px;
+cursor: pointer;
+margin-bottom: 20px;
+">
+Reiniciar progreso
+</button>
+
+
+
+
+<ul class="episode-list" id="episode-list">
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe2/d2/s8/2/_/s/0/X/_s0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/7S9RDiSixGe2miORi1fakQwZhjS.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 1</h3>
+<p>T1 - EP1</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="1" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe1/ec/s8/2/P/q/0/X/Pq0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/pkxbaf98mNpxyoZAiNmJo8vHoDD.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 2</h3>
+<p>T1 - EP2</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="2" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe1/79/s8/2/o/t/0/X/ot0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/h6rJcoDs7tFjLT79RRM3q2ImAuQ.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 3</h3>
+<p>T1 - EP3</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="3" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/3e/s8/2/1/C/0/X/1C0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/6gaE4O5tWAkUbjJlGQ8DVyG6q8h.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 4</h3>
+<p>T1 - EP4</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="4" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe1/a2/s8/2/R/M/0/X/RM0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/1v9aBIzrSwCVzp8SlNBpVqR4K4N.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 5</h3>
+<p>T1 - EP5</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="5" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/d4/s8/2/r/L/0/X/rL0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/2FtdRhVTJsdS3pWoIYx9w4yD29F.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 6</h3>
+<p>T1 - EP6</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="6" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe2/8a/s8/2/b/P/0/X/bP0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/qP3FnggFKbJSeSRMxKkYM8hWymc.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 7</h3>
+<p>T1 - EP7</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="7" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/5c/s8/2/f/O/0/X/fO0Xx.aaa.mp4" data-season="season1" >
+<img src="https://image.tmdb.org/t/p/w300/ijDV8Z23iR5B2ftx0WggiXbfqGi.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 8</h3>
+<p>T1 - EP8</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="8" type="checkbox" />
+</div>
+</li>
+
+
+<!--PEGAR TEMPORADA ABAJO-->
+
+<option value="season2">Temporada 2</option>
+<!--TEMPORADA 2-->
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/94/s8/2/6/N/_/X/6N_Xx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/aZRoYFSdpvAECPHKqoIHpCguzFQ.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 1</h3>
+<p>T2 - EP1</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="1" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe2/12/s8/2/j/3/_/X/j3_Xx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/86LzgXATHHPbJkQKGZWLKXPHQfY.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 2</h3>
+<p>T2 - EP2</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="2" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe2/ae/s8/2/h/_/_/X/h__Xx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/hhuAU2n6j5Z5VIQLZh3LjexezRu.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 3</h3>
+<p>T2 - EP3</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="3" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe1/0b/s8/2/I/8/_/X/I8_Xx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/2MK8MEVaWcMqsQCF8WojDs6A6vi.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 4</h3>
+<p>T2 - EP4</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="4" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/42/s8/2/x/k/a/Y/xkaYx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/7gVrb31GptKLDLR4fzR0Mc3tnJU.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 5</h3>
+<p>T2 - EP5</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="5" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/a0/s8/2/V/e/a/Y/VeaYx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/5eXJeZqfEKP8kggTEaPA9CGU7cF.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 6</h3>
+<p>T2 - EP6</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="6" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/e9/s8/2/M/k/a/Y/MkaYx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/sIRJxPcVU5QaDXGseBlg44wBDwx.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 7</h3>
+<p>T2 - EP7</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="7" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/27/s8/2/H/p/a/Y/HpaYx.aaa.mp4" data-season="season2" >
+<img src="https://image.tmdb.org/t/p/w300/yasOqypIHTH1ioss7T12LjcIcnG.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 8</h3>
+<p>T2 - EP8</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="8" type="checkbox" />
+</div>
+</li>
+
+<!--Siguiente temporada debajo-->
+
+<option value="season3">Temporada 3</option>
+<!--TEMPORADA 3-->
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe2/f4/s8/2/N/3/D/Y/N3DYx.aaa.mp4" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/z4Hy6lntZDS6sGJGPCjhJ5bcCO.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 1</h3>
+<p>T3 - EP1</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="1" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://1a-1791.com/video/fwe1/19/s8/2/x/c/G/Y/xcGYx.aaa.mp4" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/v21YbRKZvEBp84bOb30bSPt6fIX.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 2</h3>
+<p>T3 - EP2</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="2" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe2/81/s8/2/1/n/H/Y/1nHYx.aaa.mp4" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/jzOMmcSbr3YzFe90mK5uFYhb220.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 3</h3>
+<p>T3 - EP3</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="3" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://lzrdrgz01.github.io/web?player=jwpl&provider=rand&format=video%2Fmp4&link=https://hugh.cdn.rumble.cloud/video/fwe1/3e/s8/2/x/u/J/Y/xuJYx.aaa.mp4" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/FWIBME33cC9qRoS6Y2qui0QaWC.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 4</h3>
+<p>T3 - EP4</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="4" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://emturbovid.com/t/67b8273092b71" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/21Eov71SQJV3MESVBityTPVITLc.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 5</h3>
+<p>T3 - EP5</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="5" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://emturbovid.com/t/67c080f782293" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/5NMW2Q21EOINDHcFeJvzm1i73xW.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 6</h3>
+<p>T3 - EP6</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="6" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://emturbovid.com/t/67c9ae0ece92c" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/ydn7SFlgi8fUP6jQcjr1zJGtVMa.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 7</h3>
+<p>T3 - EP7</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="7" type="checkbox" />
+</div>
+</li>
+
+<li class="episode-item" data-video-url="https://emturbovid.com/t/67d301e467d95" data-season="season3" >
+<img src="https://image.tmdb.org/t/p/w300/wM7LAQfa3TZoBflejOTwRMM77hJ.jpg" alt="Thumbnail">
+<div class="episode-info">
+<h3>Episode 8</h3>
+<p>T3 - EP8</p>
+</div>
+<div class="toggle">
+<label>NO VISTO</label>
+<input data-episode="8" type="checkbox" />
+</div>
+</li>
+
+</ul><!--Siguiente temporada debajo-->
+
+
+
+
+
+
+
+
+
+<!--NO PASARSE ESTA ETIQUETA-->
+</ul>
+</div>
+</div>
+
+<!-- Navegación inferior -->
+<div class="bottom-nav">
+<div class="bottom-nav">
+<a href="https://lzrdrgz01.github.io/BuscadorLzPlay/">
+<i class="fa fa-arrow-left"></i>
+<span>Regresar</span>
+</a>
+<a href="https://lacinelocuradelzplayhdgratis.blogspot.com/">
+<i class="fas fa-home"></i>
+<span>Home</span>
+</a>
+<a href="https://lacinelocuradelzplayhdgratis.blogspot.com/search/label/Movie">
+<i class="fas fa-film"></i>
+<span>Movies</span>
+</a>
+</div>
+
+
+const serieId = "INVENCIBLE";
+
+<script>
+const serieId = "INVENCIBLE";
+
+document.addEventListener('DOMContentLoaded', function () {
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+const episodeItems = document.querySelectorAll('.episode-item');
+const mainVideo = document.getElementById('main-video');
+const seasonSelect = document.getElementById('season-select');
+const episodeList = document.getElementById('episode-list');
+const lastWatchedInfo = document.getElementById('last-watched-info');
+const progressInfo = document.getElementById('progress-info');
+
+// Mostrar estado de episodios
+checkboxes.forEach(function (checkbox) {
+const episode = checkbox.getAttribute('data-episode');
+const label = checkbox.previousElementSibling;
+const key = serieId + "-episode-" + episode;
+const storedStatus = localStorage.getItem(key) === 'true';
+
+checkbox.checked = storedStatus;
+label.textContent = storedStatus ? 'VISTO' : 'NO VISTO';
+
+checkbox.addEventListener('change', function () {
+const newStatus = checkbox.checked;
+localStorage.setItem(key, newStatus);
+label.textContent = newStatus ? 'VISTO' : 'NO VISTO';
+updateProgress();
+});
+
+checkbox.addEventListener('click', function (event) {
+event.stopPropagation();
+});
+});
+
+// Reproducir episodio y guardar último visto
+episodeItems.forEach(function (item) {
+item.addEventListener('click', function () {
+const videoUrl = item.getAttribute('data-video-url');
+const season = item.getAttribute('data-season');
+const episode = item.querySelector('input[type="checkbox"]').getAttribute('data-episode');
+
+mainVideo.src = videoUrl;
+
+localStorage.setItem(serieId + "-last-watched", videoUrl);
+localStorage.setItem(serieId + "-last-watched-season", season);
+localStorage.setItem(serieId + "-last-watched-ep", episode);
+
+updateLastWatched();
+});
+});
+
+// Filtro de temporadas
+seasonSelect.addEventListener('change', function () {
+const selectedSeason = seasonSelect.value;
+
+// Ocultar todos los episodios
+const allEpisodes = episodeList.querySelectorAll('.episode-item');
+allEpisodes.forEach(function (ep) {
+ep.style.display = 'none';
+});
+
+// Mostrar solo los de la temporada seleccionada
+const selectedEpisodes = episodeList.querySelectorAll('.episode-item[data-season="' + selectedSeason + '"]');
+selectedEpisodes.forEach(function (ep) {
+ep.style.display = 'flex';
+});
+
+updateProgress();
+});
+
+// Cargar último episodio automáticamente
+const lastVideo = localStorage.getItem(serieId + "-last-watched");
+if (lastVideo) {
+mainVideo.src = lastVideo;
+}
+
+function updateLastWatched() {
+const ep = localStorage.getItem(serieId + "-last-watched-ep");
+const season = localStorage.getItem(serieId + "-last-watched-season");
+if (ep && season) {
+lastWatchedInfo.textContent = "Último episodio visto: " + season.toUpperCase() + " - EP" + ep;
+} else {
+lastWatchedInfo.textContent = '';
+}
+}
+
+function updateProgress() {
+const selectedSeason = seasonSelect.value;
+const episodes = episodeList.querySelectorAll('.episode-item[data-season="' + selectedSeason + '"]');
+
+let total = 0;
+let vistos = 0;
+
+episodes.forEach(function (ep) {
+const checkbox = ep.querySelector('input[type="checkbox"]');
+total++;
+if (checkbox.checked) {
+vistos++;
+}
+});
+
+progressInfo.textContent = "Progreso: " + vistos + " de " + total + " episodios vistos";
+}
+
+// Reiniciar progreso
+document.getElementById('reset-progress').addEventListener('click', function () {
+if (confirm('¿Estás seguro de que deseas reiniciar todo el progreso?')) {
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+checkboxes.forEach(function (checkbox) {
+const episode = checkbox.getAttribute('data-episode');
+const key = serieId + "-episode-" + episode;
+localStorage.removeItem(key);
+checkbox.checked = false;
+checkbox.previousElementSibling.textContent = 'NO VISTO';
+});
+
+localStorage.removeItem(serieId + "-last-watched");
+localStorage.removeItem(serieId + "-last-watched-ep");
+localStorage.removeItem(serieId + "-last-watched-season");
+
+document.getElementById('main-video').src = '';
+lastWatchedInfo.textContent = '';
+progressInfo.textContent = 'Progreso: 0 episodios vistos';
+}
+});
+
+// Inicializar
+seasonSelect.dispatchEvent(new Event('change'));
+updateLastWatched();
+});
+
+// Función para mostrar/ocultar la sinopsis
+function toggleSynopsis() {
+const synopsis = document.getElementById('synopsis');
+const button = document.querySelector('.synopsis-button');
+if (synopsis.style.display === 'none' || synopsis.style.display === '') {
+synopsis.style.display = 'block';
+button.innerText = 'Ocultar sinopsis';
+} else {
+synopsis.style.display = 'none';
+button.innerText = 'Ver sinopsis';
+}
+}
+</script>
+
+</body>
+</html>
